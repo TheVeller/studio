@@ -97,19 +97,21 @@ export function AlertInsightsApp() {
   const relevantAlerts = alerts.filter(a => a.relevancyScore && a.relevancyScore >= 0.5);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-secondary/40">
       <Header />
-      <div className="container mx-auto max-w-4xl p-4 py-8 md:p-8">
-        <div className="flex flex-col gap-8">
-          <KeywordManager keywords={keywords} setKeywords={setKeywords} />
-          <EmailImporter onImport={handleImport} isProcessing={isPending} />
-          <AlertTabs
-            allAlerts={alerts}
-            relevantAlerts={relevantAlerts}
-            onGenerateDraft={handleGenerateDraft}
-          />
+      <main className="flex-1">
+        <div className="container mx-auto max-w-5xl p-4 py-8 md:p-8">
+          <div className="flex flex-col gap-8">
+            <KeywordManager keywords={keywords} setKeywords={setKeywords} />
+            <EmailImporter onImport={handleImport} isProcessing={isPending} />
+            <AlertTabs
+              allAlerts={alerts}
+              relevantAlerts={relevantAlerts}
+              onGenerateDraft={handleGenerateDraft}
+            />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

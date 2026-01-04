@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Tags } from 'lucide-react';
+import { X, Tags, Plus } from 'lucide-react';
 
 interface KeywordManagerProps {
   keywords: string[];
@@ -30,12 +30,12 @@ export function KeywordManager({ keywords, setKeywords }: KeywordManagerProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tags className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 font-headline">
+          <Tags className="h-6 w-6" />
           Relevancy Keywords
         </CardTitle>
         <CardDescription>
-          Add keywords to score the relevancy of incoming alerts. These keywords will also guide AI responses.
+          Add or remove keywords to score the relevancy of incoming alerts. These keywords will also guide AI responses.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,19 +46,21 @@ export function KeywordManager({ keywords, setKeywords }: KeywordManagerProps) {
             onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
             placeholder="e.g., 'generative AI'"
           />
-          <Button onClick={handleAddKeyword}>Add</Button>
+          <Button onClick={handleAddKeyword}>
+            <Plus className="h-4 w-4 mr-2"/> Add
+          </Button>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          {keywords.length === 0 && <p className="text-sm text-muted-foreground">No keywords added yet.</p>}
+          {keywords.length === 0 && <p className="text-sm text-muted-foreground px-2 py-4 text-center w-full">No keywords added yet. Add one above to get started.</p>}
           {keywords.map(keyword => (
-            <Badge key={keyword} variant="secondary" className="py-1 pl-3 pr-1 text-sm">
+            <Badge key={keyword} variant="secondary" className="py-1.5 pl-3 pr-1 text-sm font-medium">
               {keyword}
               <button
                 onClick={() => handleRemoveKeyword(keyword)}
-                className="ml-1 rounded-full p-0.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+                className="ml-1.5 rounded-full p-0.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
                 aria-label={`Remove ${keyword}`}
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </Badge>
           ))}
