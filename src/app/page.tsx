@@ -1,3 +1,9 @@
+import { AlertInsightsApp } from '@/components/alert-insights-app';
+
 export default function Home() {
-  return <></>;
+  return (
+    <main>
+      <AlertInsightsApp />
+    </main>
+  );
 }
