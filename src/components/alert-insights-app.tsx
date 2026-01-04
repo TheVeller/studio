@@ -4,11 +4,12 @@ import { useState, useTransition } from 'react';
 import type { Alert } from '@/lib/types';
 import { Header } from '@/components/header';
 import { KeywordManager } from '@/components/keyword-manager';
-import { EmailImporter } from '@/components/email-importer';
+import { ConnectorsManager } from '@/components/connectors/connectors-manager';
 import { AlertTabs } from '@/components/alert-tabs';
-import { parseEmailContent } from '@/lib/parser';
 import { draftResponseAction, scoreAlertAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from './ui/separator';
+import { Inbox } from 'lucide-react';
 
 export function AlertInsightsApp() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -16,36 +17,32 @@ export function AlertInsightsApp() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleImport = (content: string) => {
+  const handleAlertsImported = (newAlerts: Alert[]) => {
     startTransition(() => {
-      const parsedAlerts = parseEmailContent(content);
-
-      if (parsedAlerts.length === 0) {
+      if (newAlerts.length === 0) {
         toast({
-          title: 'Parsing Failed',
-          description: 'Could not find any alerts in the provided content. Please check the format.',
-          variant: 'destructive',
+          title: 'No New Alerts',
+          description: 'Could not find any new alerts to import.',
+          variant: 'default',
         });
         return;
       }
 
-      const newAlerts: Alert[] = parsedAlerts.map(pa => ({
-        id: crypto.randomUUID(),
-        title: pa.title!,
-        snippet: pa.snippet!,
-        source: pa.source!,
-        link: pa.link!,
-        isScoring: true,
-      }));
+      const alertsToScore = newAlerts.map(alert => ({ ...alert, isScoring: true }));
+      setAlerts(prev => [...alertsToScore, ...prev]);
+      
+      toast({
+        title: 'Import Successful',
+        description: `Imported ${newAlerts.length} new alert(s). Scoring relevancy...`,
+      });
 
-      setAlerts(prev => [...newAlerts, ...prev]);
 
       if (keywords.length === 0) {
         toast({
           title: 'No Keywords',
           description: 'Imported alerts but cannot score relevancy without keywords.',
         });
-        newAlerts.forEach(alert => {
+        alertsToScore.forEach(alert => {
           setAlerts(prev =>
             prev.map(a => (a.id === alert.id ? { ...a, isScoring: false, relevancyScore: -1, relevancyReason: "No keywords to score." } : a))
           );
@@ -53,7 +50,7 @@ export function AlertInsightsApp() {
         return;
       }
 
-      newAlerts.forEach(async alert => {
+      alertsToScore.forEach(async alert => {
         const scoreResult = await scoreAlertAction(alert, keywords);
         setAlerts(prev =>
           prev.map(a =>
@@ -103,12 +100,20 @@ export function AlertInsightsApp() {
         <div className="container mx-auto max-w-5xl p-4 py-8 md:p-8">
           <div className="flex flex-col gap-8">
             <KeywordManager keywords={keywords} setKeywords={setKeywords} />
-            <EmailImporter onImport={handleImport} isProcessing={isPending} />
-            <AlertTabs
-              allAlerts={alerts}
-              relevantAlerts={relevantAlerts}
-              onGenerateDraft={handleGenerateDraft}
-            />
+            <ConnectorsManager onAlertsImported={handleAlertsImported} isProcessing={isPending} />
+
+            <div>
+              <div className='flex items-center gap-2 mb-4 px-2'>
+                <Inbox className="h-6 w-6" />
+                <h2 className='text-2xl font-headline'>Alerts Inbox</h2>
+              </div>
+              <Separator className="mb-8" />
+              <AlertTabs
+                allAlerts={alerts}
+                relevantAlerts={relevantAlerts}
+                onGenerateDraft={handleGenerateDraft}
+              />
+            </div>
           </div>
         </div>
       </main>

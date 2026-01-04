@@ -4,19 +4,20 @@ import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { sampleEmailContent } from '@/lib/parser';
+import { sampleEmailContent, parseEmailContent } from '@/lib/parser';
 import { Mail, Paperclip, Loader2, FileText, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
+import type { Alert } from '@/lib/types';
 
 interface EmailImporterProps {
-  onImport: (content: string) => void;
+  onAlertsImported: (alerts: Alert[]) => void;
   isProcessing: boolean;
 }
 
-export function EmailImporter({ onImport, isProcessing }: EmailImporterProps) {
+export function EmailImporter({ onAlertsImported, isProcessing }: EmailImporterProps) {
   const [content, setContent] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -30,7 +31,26 @@ export function EmailImporter({ onImport, isProcessing }: EmailImporterProps) {
       });
       return;
     }
-    onImport(content);
+    
+    const parsedAlerts = parseEmailContent(content);
+    if (parsedAlerts.length === 0) {
+      toast({
+        title: 'Parsing Failed',
+        description: 'Could not find any alerts in the provided content. Please check the format.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newAlerts: Alert[] = parsedAlerts.map(pa => ({
+      id: crypto.randomUUID(),
+      title: pa.title!,
+      snippet: pa.snippet!,
+      source: pa.source!,
+      link: pa.link!,
+    }));
+
+    onAlertsImported(newAlerts);
     setContent('');
   };
 
@@ -83,7 +103,7 @@ export function EmailImporter({ onImport, isProcessing }: EmailImporterProps) {
           Import Google Alerts
         </CardTitle>
         <CardDescription>
-          Paste raw email content below or upload .eml/.txt files to begin analyzing your alerts.
+          Paste raw email content below or upload .eml/.txt files to begin analyzing your alerts. This is a temporary solution until the Google Alerts connector is fully configured.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
